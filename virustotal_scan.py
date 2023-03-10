@@ -68,6 +68,22 @@ def submit_file_for_analysis(file_path):
         status = response_json["data"]["attributes"]["status"]
         if status == "completed":
             break
+        elif status == "queued":
+            print("Your file is waiting in the queue for analysis...")
+        elif status == "in_progress":
+            print("Analysis is in progress, please wait...")
+        elif status == "failure":
+            print("Analysis failed. Please try again later.")
+            sys.exit(1)
+        elif status == "timeout":
+            print("Analysis timed out. Please try again later.")
+            sys.exit(1)
+        elif status == "paused":
+            print("Analysis paused. Please try again later.")
+            sys.exit(1)
+        elif status == "cancelled":
+            print("Analysis cancelled. Please try again later.")
+            sys.exit(1)
 
     # Obtain the result of the analysis
     response = requests.get(
@@ -85,20 +101,18 @@ def get_antivirus_detection_count(response_json):
 
 
 def print_detection_results(response_json):
-    # Check if any threats were found
     last_analysis_stats = response_json.get("data", {}).get(
         "attributes", {}).get("last_analysis_stats", {})
     found_threat = last_analysis_stats.get("malicious", 0) > 0
 
     if found_threat:
-        print("THREATS WERE FOUND:")
+        print("\nTHREATS WERE FOUND:\n")
+        detection_count = 0
         for engine, details in response_json["data"]["attributes"]["last_analysis_results"].items():
             print(f"{engine}: {details['category']}")
-        print("\nTHE FILE IS INFECTED!")
-
-        detection_count = get_antivirus_detection_count(response_json)
+            if details["category"] == "malicious":
+                detection_count += 1
         print(f"\n{detection_count} antivirus detected the file as malicious.")
-        sys.exit()
     else:
         print("No threats were found.")
         print("The file is safe.")
@@ -112,7 +126,7 @@ if __name__ == "__main__":
         # Check if the file has already been analyzed
         sha256_hash = check_file(sys.argv[1])
         check_file_analysis(sha256_hash)
-        
+
         submit_file_for_analysis(sys.argv[1])
     except requests.RequestException as request:
         print(f"Error connecting to VirusTotal: {request}")
