@@ -1,5 +1,5 @@
 # virustotal-terminal
-Utility to use VirusTotal in your Terminal or CMD
+Utility to use VirusTotal in your Terminal or CMD quickly and comfortably.
 
 Use:
 
